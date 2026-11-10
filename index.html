@@ -52,9 +52,9 @@
           <div id="map-notice" class="map-notice" role="status" hidden><span id="map-message"></span><button id="retry-map" class="button button-small" type="button" hidden>Retry map</button></div>
           <details class="map-legend" open>
             <summary>Map key</summary>
-            <div id="density-legend"><h3>Member density</h3><div class="density-ramp"></div><div class="legend-extents"><span>Lower</span><span>Higher</span></div></div>
+            <div id="density-legend" hidden><h3>Member density</h3><div class="density-ramp"></div><div class="legend-extents"><span>Lower</span><span>Higher</span></div></div>
             <div id="band-legend" hidden></div>
-            <div id="symbol-legend" hidden><h3 id="symbol-legend-title">Members per suburb</h3><div class="legend-row"><span id="symbol-legend-swatch" class="point-swatch"></span><span id="symbol-legend-color">Electric Blue</span></div><p id="cluster-legend-note" class="hint" hidden>Member totals</p></div>
+            <div id="symbol-legend"><h3 id="symbol-legend-title">Members per suburb</h3><div class="legend-row"><span id="symbol-legend-swatch" class="point-swatch"></span><span id="symbol-legend-color">Electric Blue</span></div><p id="cluster-legend-note" class="hint" hidden>Member totals</p></div>
             <div id="threshold-legend"><div class="legend-row"><span class="threshold-swatch beyond"></span><span id="beyond-legend-label">Beyond 50 km</span></div><div class="legend-row"><span class="threshold-swatch no-route"></span><span>No computed route</span></div></div>
             <div class="legend-row"><span class="group-key"></span><span>Support group</span></div>
             <div class="legend-row"><span class="route-key"></span><span>Selected road route</span></div>
@@ -96,7 +96,7 @@
         <legend class="sr-only">Map appearance</legend>
         <label class="field-label" for="basemap-select">Basemap</label>
         <select id="basemap-select"><option value="osm">OpenStreetMap</option><option value="topo">Esri World Topography</option><option value="aerial">Esri Aerial</option></select>
-        <fieldset class="map-display" id="map-display" disabled><legend class="field-label">Map display</legend><div class="segmented-control display-choices"><label><input type="radio" name="map-mode" value="density" checked><span>Member density</span></label><label><input type="radio" name="map-mode" value="points"><span>Individual points</span></label><label><input type="radio" name="map-mode" value="clusters"><span>Clusters</span></label><label><input type="radio" name="map-mode" value="bands"><span>Distance bands</span></label></div></fieldset>
+        <fieldset class="map-display" id="map-display" disabled><legend class="field-label">Map display</legend><div class="segmented-control display-choices"><label><input type="radio" name="map-mode" value="density"><span>Member density</span></label><label><input type="radio" name="map-mode" value="points" checked><span>Individual points</span></label><label><input type="radio" name="map-mode" value="clusters"><span>Clusters</span></label><label><input type="radio" name="map-mode" value="bands"><span>Distance bands</span></label></div></fieldset>
         <label class="field-label" for="symbol-palette">Point / cluster colors</label>
         <select id="symbol-palette"><option value="blue">Electric Blue</option><option value="magenta">Magenta</option><option value="violet">Vivid Violet</option><option value="orange">Bright Orange</option></select>
         <fieldset class="map-checkboxes"><legend class="field-label">Labels</legend><label><input id="suburb-label-toggle" type="checkbox">Suburb labels</label><label><input id="cluster-label-toggle" type="checkbox" checked>Cluster member counts</label><label><input id="group-label-toggle" type="checkbox" checked>Support Group labels</label></fieldset>

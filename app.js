@@ -8,7 +8,7 @@ const colours = ['#247e80', '#58a69a', '#d1ac55', '#c87c4a', '#a95253'];
 const emptyGeojson = () => ({ type: 'FeatureCollection', features: [] });
 const state = {
   mode: 'nearest', groupId: null, boundariesKm: [25, 50, 100, 200],
-  bandId: null, minKm: null, maxKm: null, mapMode: 'density', selected: null,
+  bandId: null, minKm: null, maxKm: null, mapMode: 'points', selected: null,
   members: null, analysis: null, report: null, summary: null,
   map: null, mapReady: false, dataSerial: 0, routeSerial: 0,
   routeCache: new Map(), activeRoute: null, routeViewFitted: false,

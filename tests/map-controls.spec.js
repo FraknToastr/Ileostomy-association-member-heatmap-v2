@@ -118,6 +118,21 @@ async function searchSelect(page, feature) {
   await expect(page.locator('#selected-name')).toHaveText(feature.properties.name);
 }
 
+async function cameraView(page) {
+  return page.evaluate(() => {
+    const map = window.__markerTestMap;
+    const round = value => Number(value.toFixed(6));
+    return { center: map.getCenter().toArray().map(round), zoom: round(map.getZoom()),
+      bearing: round(map.getBearing()), pitch: round(map.getPitch()),
+      padding: Object.fromEntries(Object.entries(map.getPadding()).map(([key, value]) => [key, round(value)])) };
+  });
+}
+
+async function expectCameraView(page, expected) {
+  await expect.poll(() => page.evaluate(() => window.__markerTestMap.isMoving())).toBe(false);
+  await expect.poll(() => cameraView(page)).toEqual(expected);
+}
+
 async function captureFits(page) {
   await page.evaluate(() => {
     const map = window.__markerTestMap;
@@ -435,30 +450,77 @@ test('search selection fits the complete route and Fit Route restores it after a
   expect(await page.evaluate(() => window.__markerTestMap.getStyle().sources.route.data.features)).toEqual([]);
 });
 
-test('clicking a rendered suburb fits the complete route without a popup', async ({ page }) => {
+for (const displayMode of ['density', 'points', 'bands']) {
+  test(`closing a selected suburb restores its previous map view in ${displayMode} mode`, async ({ page }) => {
+    const fixture = await routeFixture('ADELAIDE');
+    await ready(page);
+    await mode(page, displayMode);
+    await page.locator('#group-layer-toggle').uncheck();
+    await closeMap(page);
+    await page.evaluate(coordinates => window.__markerTestMap.jumpTo({ center: coordinates, zoom: 12,
+      bearing: 17, pitch: 25, padding: { top: 23, bottom: 31, left: 17, right: 29 } }), fixture.feature.geometry.coordinates);
+    await expect.poll(() => page.evaluate(({ id, coordinates }) => {
+      const map = window.__markerTestMap;
+      return map.queryRenderedFeatures(map.project(coordinates), { layers: ['member-points'] }).some(feature => feature.properties.id === id);
+    }, { id: fixture.feature.properties.id, coordinates: fixture.feature.geometry.coordinates })).toBe(true);
+    const originalView = await cameraView(page);
+    await captureFits(page);
+    const point = await page.evaluate(coordinates => {
+      const map = window.__markerTestMap;
+      const position = map.project(coordinates);
+      const bounds = map.getContainer().getBoundingClientRect();
+      return [bounds.left + position.x, bounds.top + position.y];
+    }, fixture.feature.geometry.coordinates);
+    await page.mouse.click(...point);
+    await expect(page.locator('#selected-name')).toHaveText('ADELAIDE');
+    await expectReadyRoute(page, fixture);
+    await expectRouteFits(page);
+    await expect.poll(() => page.evaluate(() => window.__routeFitCalls.at(-1)?.maxZoom)).toBe(17);
+    await expect(page.locator('.maplibregl-popup')).toHaveCount(0);
+    await page.evaluate(() => window.__markerTestMap.jumpTo({ center: [137, -33], zoom: 8, bearing: -8, pitch: 12 }));
+    await page.locator('#close-selection').click();
+    await expect(page.locator('#selected-suburb')).toBeHidden();
+    await expect(page.locator('#fit-route')).toBeDisabled();
+    await expectCameraView(page, originalView);
+    expect(await page.evaluate(() => window.__markerTestMap.getStyle().sources.route.data.features)).toEqual([]);
+  });
+}
+
+test('route changes and refitting preserve the original view, and a new selection saves a fresh view', async ({ page }) => {
+  const first = await routeFixture('ADELAIDE');
+  const second = await routeFixture('VICTOR HARBOR');
+  await ready(page);
+  await page.evaluate(() => window.__markerTestMap.jumpTo({ center: [138.7, -33.9], zoom: 6, bearing: 9, pitch: 15 }));
+  const originalView = await cameraView(page);
+  await searchSelect(page, first.feature);
+  await expectReadyRoute(page, first);
+  await searchSelect(page, second.feature);
+  await expectReadyRoute(page, second);
+  await page.evaluate(() => window.__markerTestMap.jumpTo({ center: [137, -31], zoom: 7 }));
+  await page.locator('#fit-route').click();
+  await expectRouteFits(page);
+  await page.locator('#close-selection').click();
+  await expectCameraView(page, originalView);
+
+  await page.evaluate(() => window.__markerTestMap.jumpTo({ center: [139.3, -34.2], zoom: 7.1, bearing: -18, pitch: 20 }));
+  const nextView = await cameraView(page);
+  await searchSelect(page, first.feature);
+  await expect(page.locator('#route-status')).toContainText('Road route ready');
+  // Close while the cached route's automatic camera animation can still be running.
+  await page.locator('#close-selection').click();
+  await expectCameraView(page, nextView);
+});
+
+test('closing a selected suburb in cluster mode keeps the current map view', async ({ page }) => {
   const fixture = await routeFixture('ADELAIDE');
   await ready(page);
-  await mode(page, 'points');
-  await page.locator('#group-layer-toggle').uncheck();
+  await mode(page, 'clusters');
   await closeMap(page);
-  await page.evaluate(coordinates => window.__markerTestMap.jumpTo({ center: coordinates, zoom: 12 }), fixture.feature.geometry.coordinates);
-  await expect.poll(() => page.evaluate(({ id, coordinates }) => {
-    const map = window.__markerTestMap;
-    return map.queryRenderedFeatures(map.project(coordinates), { layers: ['member-points'] }).some(feature => feature.properties.id === id);
-  }, { id: fixture.feature.properties.id, coordinates: fixture.feature.geometry.coordinates })).toBe(true);
-  await captureFits(page);
-  const point = await page.evaluate(coordinates => {
-    const map = window.__markerTestMap;
-    const position = map.project(coordinates);
-    const bounds = map.getContainer().getBoundingClientRect();
-    return [bounds.left + position.x, bounds.top + position.y];
-  }, fixture.feature.geometry.coordinates);
-  await page.mouse.click(...point);
-  await expect(page.locator('#selected-name')).toHaveText('ADELAIDE');
+  await searchSelect(page, fixture.feature);
   await expectReadyRoute(page, fixture);
-  await expectRouteFits(page);
-  await expect.poll(() => page.evaluate(() => window.__routeFitCalls.at(-1)?.maxZoom)).toBe(17);
-  await expect(page.locator('.maplibregl-popup')).toHaveCount(0);
+  const fittedView = await cameraView(page);
+  await page.locator('#close-selection').click();
+  await expectCameraView(page, fittedView);
 });
 
 test('responsive route fitting survives zoom in, zoom out and refitting on desktop and mobile', async ({ page }) => {
@@ -506,6 +568,10 @@ test('no-route selection leaves Fit Route disabled and never fits an absent line
   expect(await page.evaluate(() => window.__routeFitCalls)).toEqual([]);
   expect(await page.evaluate(() => window.__markerTestMap.getStyle().sources.route.data.features)).toEqual([]);
   expect(geometryRequests).toEqual([]);
+  await page.evaluate(() => window.__markerTestMap.jumpTo({ center: [138.8, -34.7], zoom: 8 }));
+  const currentView = await cameraView(page);
+  await page.locator('#close-selection').click();
+  await expectCameraView(page, currentView);
 });
 
 test('route loading failure leaves Fit Route disabled and selecting again retries successfully', async ({ page }) => {
@@ -520,10 +586,14 @@ test('route loading failure leaves Fit Route disabled and selecting again retrie
   await expect(page.locator('#fit-route')).toBeDisabled();
   expect(await page.evaluate(() => window.__routeFitCalls)).toEqual([]);
   expect(await page.evaluate(() => window.__markerTestMap.getStyle().sources.route.data.features)).toEqual([]);
+  await page.evaluate(() => window.__markerTestMap.jumpTo({ center: [138.75, -34.6], zoom: 8, bearing: 2, pitch: 20 }));
+  const retryView = await cameraView(page);
   await page.unroute(pattern);
   await searchSelect(page, fixture.feature);
   await expectReadyRoute(page, fixture);
   await expectRouteFits(page);
+  await page.locator('#close-selection').click();
+  await expectCameraView(page, retryView);
 });
 
 test('a late route response cannot replace the latest selection, status, or fitted camera', async ({ page }) => {

@@ -12,6 +12,7 @@ const state = {
   members: null, analysis: null, report: null, summary: null,
   map: null, mapReady: false, dataSerial: 0, routeSerial: 0,
   routeCache: new Map(), activeRoute: null, routeViewFitted: false,
+  selectionView: null, selectionRouteFitted: false,
   showMembers: true, showGroups: true, showRoute: true,
   thresholdKm: 50, basemap: 'osm', palette: 'blue', suburbLabels: false, clusterLabels: true, groupLabels: true,
   mapVersion: 0, featureSignature: null,
@@ -325,6 +326,12 @@ function updateSearch() {
 function selectSuburb(id) {
   const feature = state.members.features.find(f => f.properties.id === id);
   if (!feature) return;
+  if (!state.selectionRouteFitted || !state.selectionView) {
+    state.selectionView = state.mapReady && ['density', 'points', 'bands'].includes(state.mapMode) ? {
+      center: state.map.getCenter().toArray(), zoom: state.map.getZoom(),
+      bearing: state.map.getBearing(), pitch: state.map.getPitch(), padding: { ...state.map.getPadding() },
+    } : null;
+  }
   state.selected = id;
   $('selected-suburb').scrollTop = 0;
   $('search-panel').hidden = true;
@@ -373,6 +380,7 @@ function fitRoute({ animate = true } = {}) {
   $('route-layer-toggle').checked = true;
   applyAppearance(state.map, state);
   state.routeViewFitted = true;
+  state.selectionRouteFitted = true;
   state.map.fitBounds(bounds, { padding, maxZoom: 17, bearing: 0, pitch: 0,
     retainPadding: false,
     duration: animate && !matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 0 });
@@ -497,11 +505,16 @@ $('suburb-search').addEventListener('keydown', e => {
 $('search-results').addEventListener('change', () => selectSuburb($('search-results').value));
 $('clear-search').addEventListener('click', () => { $('suburb-search').value = ''; updateSearch(); $('suburb-search').focus(); });
 $('close-selection').addEventListener('click', () => {
+  const view = state.selectionRouteFitted ? state.selectionView : null;
+  state.selectionView = null;
+  state.selectionRouteFitted = false;
   state.selected = null; state.routeSerial++; routeAbort?.abort();
   $('selected-suburb').hidden = true;
   document.querySelector('.map-stage').classList.remove('has-selection');
   clearRoute();
   state.map?.getSource('selection')?.setData(emptyGeojson());
+  if (view && state.mapReady) state.map.easeTo({ ...view,
+    duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400 });
 });
 document.querySelectorAll('input[name="analysis-mode"]').forEach(input => input.addEventListener('change', () => { state.mode = input.value; state.bandId = null; renderAnalysis(); }));
 $('group-select').addEventListener('change', () => { state.groupId = $('group-select').value; state.bandId = null; renderAnalysis(); });

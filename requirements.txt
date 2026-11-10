@@ -1,0 +1,4 @@
+# Python 3.13 used for the reproducible Linux preparation pipeline.
+osmium==4.3.2
+pyproj==3.8.0
+scipy==1.18.1

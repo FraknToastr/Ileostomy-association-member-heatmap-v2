@@ -1,0 +1,31 @@
+# Keep the repository limited to source, tests, configuration and documentation.
+/*
+!/.gitignore
+!/README.md
+!/app.js
+!/index.html
+!/styles.css
+!/playwright.config.js
+!/package.json
+!/package-lock.json
+!/requirements.txt
+!/*.pyt
+!/src/
+!/scripts/
+!/tests/
+!/config/
+
+# Never track binary data, local credentials, caches or installed dependencies.
+*.[pP][bB][fF]
+*.[xX][lL][sS][xX]
+*.xlsx:Zone.Identifier
+*.osm
+*.osm.gz
+*.osm.bz2
+*.py[cod]
+__pycache__/
+node_modules/
+.venv/
+.env
+.env.*
+.DS_Store

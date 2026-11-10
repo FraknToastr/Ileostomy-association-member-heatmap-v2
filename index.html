@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="South Australian member distribution and road-network access to Ileostomy Association support groups.">
+    <title>Ileostomy Association Member Heatmap</title>
+    <link rel="stylesheet" href="./public/vendor/maplibre-gl.css">
+    <link rel="stylesheet" href="./styles.css">
+    <script defer src="./public/vendor/maplibre-gl.js"></script>
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#analysis-panel">Skip to distance analysis</a>
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      <div class="brand-copy"><p class="eyebrow">Ileostomy Association · South Australia</p><h1>Ileostomy Association Member Heatmap</h1></div>
+      <div class="header-actions">
+        <span id="source-date" class="source-date">Awaiting source data</span>
+        <nav class="header-menus" aria-label="Map options">
+          <button id="map-controls-toggle" class="button button-header" type="button" popovertarget="map-controls-panel" aria-controls="map-controls-panel" aria-expanded="false">Map</button>
+          <button id="display-filters-toggle" class="button button-header" type="button" popovertarget="display-filters-panel" aria-controls="display-filters-panel" aria-expanded="false">Display Filters</button>
+          <button id="theme-toggle" class="button button-header" type="button" aria-pressed="false">Dark theme</button>
+        </nav>
+      </div>
+    </header>
+    <main class="workspace" id="app">
+      <section class="map-section" aria-labelledby="map-heading">
+        <div class="map-toolbar">
+          <div class="search-control">
+            <label class="field-label" for="suburb-search">Suburb / postcode</label>
+            <input id="suburb-search" type="search" placeholder="Search suburbs" autocomplete="off" aria-controls="search-panel" disabled>
+            <div id="search-panel" class="search-results-panel" hidden>
+              <p id="search-status" class="hint" role="status" aria-live="polite"></p>
+              <select id="search-results" size="5" aria-label="Matching suburbs"></select>
+            </div>
+          </div>
+          <button id="clear-search" class="button button-secondary" type="button" disabled>Clear</button>
+          <fieldset id="distance-control" class="distance-control" disabled>
+            <div class="slider-heading"><label id="support-distance-target" for="support-distance">Distance to nearest group</label><output id="support-distance-value" for="support-distance">50 km</output></div>
+            <input id="support-distance" type="range" min="0" max="400" step="10" value="50" list="support-distance-ticks" aria-label="Distance to Support Group" aria-describedby="support-distance-help">
+            <datalist id="support-distance-ticks"><option value="0"></option><option value="100"></option><option value="200"></option><option value="300"></option><option value="400"></option></datalist>
+            <p id="support-distance-help" class="sr-only">Road distance to the group chosen under Calculate to. Nearest group uses each suburb’s nearest reachable support group.</p>
+          </fieldset>
+        </div>
+        <div class="map-stage">
+          <div id="map" aria-label="Member access map"></div>
+          <div class="map-heading"><p class="eyebrow">Member access</p><h2 id="map-heading">Across South Australia</h2><p id="map-context">Nearest reachable support group</p></div>
+          <div class="map-actions"><button id="fit-members" class="button button-map" type="button" disabled>Fit Members</button><button id="fit-route" class="button button-map" type="button" disabled>Fit Route</button></div>
+          <div id="data-notice" class="data-notice" role="status" aria-live="polite"><span id="data-message">Loading member data and road-distance analysis…</span><button id="retry-data" class="button button-small" type="button" hidden>Retry data</button></div>
+          <div id="map-notice" class="map-notice" role="status" hidden><span id="map-message"></span><button id="retry-map" class="button button-small" type="button" hidden>Retry map</button></div>
+          <details class="map-legend" open>
+            <summary>Map key</summary>
+            <div id="density-legend"><h3>Member density</h3><div class="density-ramp"></div><div class="legend-extents"><span>Lower</span><span>Higher</span></div></div>
+            <div id="band-legend" hidden></div>
+            <div id="symbol-legend" hidden><h3 id="symbol-legend-title">Members per suburb</h3><div class="legend-row"><span id="symbol-legend-swatch" class="point-swatch"></span><span id="symbol-legend-color">Electric Blue</span></div><p id="cluster-legend-note" class="hint" hidden>Member totals</p></div>
+            <div id="threshold-legend"><div class="legend-row"><span class="threshold-swatch beyond"></span><span id="beyond-legend-label">Beyond 50 km</span></div><div class="legend-row"><span class="threshold-swatch no-route"></span><span>No computed route</span></div></div>
+            <div class="legend-row"><span class="group-key"></span><span>Support group</span></div>
+            <div class="legend-row"><span class="route-key"></span><span>Selected road route</span></div>
+          </details>
+          <section id="selected-suburb" class="selection-card" aria-labelledby="selected-name" hidden>
+            <div class="section-heading"><span class="eyebrow">Selected suburb</span><button id="close-selection" class="icon-button" type="button" aria-label="Close selected suburb">×</button></div>
+            <h3 id="selected-name"></h3>
+            <dl class="selection-metrics"><div><dt>Members</dt><dd id="selected-members">—</dd></div><div><dt>Road distance</dt><dd id="selected-distance">—</dd></div></dl>
+            <p id="selected-group"></p><p id="selected-threshold" class="selected-threshold"></p><p id="route-status" class="sr-only" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+      </section>
+      <aside id="analysis-panel" class="analysis-panel" aria-label="Distance analysis" tabindex="-1">
+        <div class="panel-intro"><p class="eyebrow">Distance analysis</p><h2>Access to support</h2><div class="overview-stats"><div><strong id="joined-total">—</strong><span>mapped members</span></div><div><strong id="unresolved-total">—</strong><span>unresolved</span></div></div></div>
+        <div id="selected-suburb-slot"></div>
+        <fieldset class="analysis-controls panel-section" id="analysis-controls" disabled>
+          <legend class="sr-only">Group and distance settings</legend>
+          <fieldset class="mode-fieldset"><legend class="field-label">Calculate to</legend><div class="segmented-control mode-control"><label><input type="radio" name="analysis-mode" value="group"><span>Selected group</span></label><label><input type="radio" name="analysis-mode" value="nearest" checked><span>Nearest group</span></label></div></fieldset>
+          <label class="field-label" for="group-select">Support group</label><select id="group-select"><option value="">Loading groups…</option></select>
+          <details class="band-settings"><summary>Edit distance bands</summary><form id="band-form" novalidate><label class="field-label" for="band-boundaries">Band boundaries (km)</label><input id="band-boundaries" value="25, 50, 100, 200" aria-describedby="band-help band-error"><p id="band-help" class="hint">Positive, increasing distances separated by commas.</p><p class="field-error" id="band-error" aria-live="polite" hidden></p><button class="button button-secondary" type="submit">Update bands</button></form></details>
+        </fieldset>
+        <section class="panel-section threshold-section" aria-labelledby="threshold-heading">
+          <div class="section-heading"><h3 id="threshold-heading">Access at 50 km</h3><span class="local-badge">All members</span></div>
+          <dl class="threshold-totals" aria-live="polite" aria-atomic="true"><div><dt id="threshold-within-label">Within 50 km</dt><dd id="threshold-within">—</dd></div><div><dt id="threshold-beyond-label">Beyond 50 km</dt><dd id="threshold-beyond">—</dd></div><div><dt>No route</dt><dd id="threshold-no-route">—</dd></div></dl>
+        </section>
+        <section class="panel-section band-section" aria-labelledby="bands-heading">
+          <div class="section-heading"><h3 id="bands-heading">Members by distance</h3><button id="export-csv" class="button button-small" type="button" disabled>Export CSV</button></div>
+          <p id="table-context" class="hint">All joined-member distances</p>
+          <div class="table-wrap"><table class="band-table"><caption class="sr-only" id="band-caption">Absolute and percentage member counts by road-distance band.</caption><thead><tr><th scope="col">Distance</th><th scope="col">Members</th><th scope="col">Suburbs</th><th scope="col">Share</th></tr></thead><tbody id="band-rows"><tr><td colspan="4" class="table-empty">Waiting for analysis…</td></tr></tbody><tfoot><tr><th scope="row">Joined total</th><td id="table-member-total">—</td><td id="table-suburb-total">—</td><td id="table-share-total">—</td></tr></tfoot></table></div>
+          <p class="table-footnote" id="denominator-note">Shares use all joined members.</p><p class="unresolved-note" id="unresolved-note">Unresolved records remain outside the distance bands.</p>
+        </section>
+              <section class="panel-section quality-section"><details id="quality-details"><summary>Data quality &amp; method <span id="quality-count" class="quality-count"></span></summary><p class="hint">Unresolved workbook members never enter the map or joined-member denominator.</p><dl id="quality-totals" class="quality-totals"></dl><div id="quality-warnings"></div><h3 class="quality-subheading">Unresolved workbook entries</h3><ul id="unresolved-list" class="unresolved-list"><li>Loading membership report…</li></ul><h3 class="quality-subheading">Distance method</h3><p class="hint">Distances follow the supplied road network from suburb points to group locations. Ferry, snapping, network-boundary and restriction flags are retained. No straight-line replacement is used. Missing results are “Not computed,” separate from “Unreachable.”</p><p id="network-meta" class="hint"></p><p id="generated-at" class="hint"></p></details></section>
+        <p id="action-status" class="action-status" role="status" aria-live="polite"></p>
+      </aside>
+    </main>
+    <div id="map-controls-panel" class="header-menu" popover="auto" role="dialog" aria-labelledby="map-controls-heading">
+      <div class="section-heading menu-heading"><h2 id="map-controls-heading" tabindex="-1">Map</h2><button id="map-controls-close" class="icon-button" type="button" aria-label="Close Map menu">×</button></div>
+      <fieldset id="map-settings" disabled>
+        <legend class="sr-only">Map appearance</legend>
+        <label class="field-label" for="basemap-select">Basemap</label>
+        <select id="basemap-select"><option value="osm">OpenStreetMap</option><option value="topo">Esri World Topography</option><option value="aerial">Esri Aerial</option></select>
+        <fieldset class="map-display" id="map-display" disabled><legend class="field-label">Map display</legend><div class="segmented-control display-choices"><label><input type="radio" name="map-mode" value="density" checked><span>Member density</span></label><label><input type="radio" name="map-mode" value="points"><span>Individual points</span></label><label><input type="radio" name="map-mode" value="clusters"><span>Clusters</span></label><label><input type="radio" name="map-mode" value="bands"><span>Distance bands</span></label></div></fieldset>
+        <label class="field-label" for="symbol-palette">Point / cluster colors</label>
+        <select id="symbol-palette"><option value="blue">Electric Blue</option><option value="magenta">Magenta</option><option value="violet">Vivid Violet</option><option value="orange">Bright Orange</option></select>
+        <fieldset class="map-checkboxes"><legend class="field-label">Labels</legend><label><input id="suburb-label-toggle" type="checkbox">Suburb labels</label><label><input id="cluster-label-toggle" type="checkbox" checked>Cluster member counts</label><label><input id="group-label-toggle" type="checkbox" checked>Support Group labels</label></fieldset>
+        <fieldset class="map-checkboxes"><legend class="field-label">Layers</legend><label><input id="member-layer-toggle" type="checkbox" checked>Member layer</label><label><input id="group-layer-toggle" type="checkbox" checked>Support groups</label><label><input id="route-layer-toggle" type="checkbox" checked>Selected route</label></fieldset>
+      </fieldset>
+    </div>
+    <div id="display-filters-panel" class="header-menu" popover="auto" role="dialog" aria-labelledby="display-heading">
+      <div class="section-heading menu-heading"><h2 id="display-heading" tabindex="-1">Display Filters</h2><button id="display-filters-close" class="icon-button" type="button" aria-label="Close Display Filters menu">×</button></div>
+      <div class="section-heading filter-summary"><p id="active-band" class="hint">All distance bands</p><button id="clear-filters" class="button button-small" type="button" disabled>Clear filters</button></div>
+      <form id="range-form" novalidate><fieldset id="range-controls" disabled><legend class="sr-only">Visible road-distance range</legend><div class="range-fields"><div><label class="field-label" for="distance-min">Minimum km (inclusive)</label><input id="distance-min" type="number" min="0" step="any" placeholder="0" aria-describedby="range-error range-help"></div><div><label class="field-label" for="distance-max">Maximum km (exclusive)</label><input id="distance-max" type="number" min="0" step="any" placeholder="No maximum" aria-describedby="range-error range-help"></div></div><p id="range-error" class="field-error" role="status" aria-live="polite" hidden></p><button class="button button-secondary range-apply" type="submit">Apply range</button></fieldset></form>
+      <div class="visible-summary" aria-live="polite" aria-atomic="true"><span class="metric-label">Visible members</span><strong id="visible-members">—</strong><span id="visible-suburbs">Waiting for data</span></div><p id="range-help" class="hint">Filters change the map and visible summary. The full band table stays unchanged. Distance limits exclude routes without a computed distance.</p>
+    </div>
+    <noscript><p class="noscript-notice">JavaScript is required to read the local analysis and display the map.</p></noscript>
+  </body>
+</html>

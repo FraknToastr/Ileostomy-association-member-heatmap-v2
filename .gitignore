@@ -1,4 +1,4 @@
-# Keep the repository limited to source, tests, configuration and documentation.
+# Track source, tests, configuration, documentation and approved public aggregates.
 /*
 !/.gitignore
 !/README.md
@@ -6,6 +6,7 @@
 !/index.html
 !/styles.css
 !/playwright.config.js
+!/playwright.pages.config.js
 !/package.json
 !/package-lock.json
 !/requirements.txt
@@ -14,6 +15,23 @@
 !/scripts/
 !/tests/
 !/config/
+!/.github/
+/.github/*
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/pages.yml
+!/public/
+/public/*
+!/public/data/
+/public/data/*
+!/public/data/analysis.json
+!/public/data/manifest.json
+!/public/data/members.geojson
+!/public/data/membership-report.json
+!/public/data/snap-report.json
+!/public/data/routes/
+/public/data/routes/*
+!/public/data/routes/group-*.geojson
 
 # Never track binary data, local credentials, caches or installed dependencies.
 *.[pP][bB][fF]
@@ -25,6 +43,7 @@
 *.py[cod]
 __pycache__/
 node_modules/
+test-results-pages/
 .venv/
 .env
 .env.*

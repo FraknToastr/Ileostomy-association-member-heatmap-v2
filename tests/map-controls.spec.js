@@ -7,6 +7,13 @@ const members = JSON.parse(await fs.readFile(new URL('members.geojson', dataRoot
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
 
 test.beforeEach(async ({ page }) => {
+  await page.route('https://demotiles.maplibre.org/font/**', async route => {
+    const url = new URL(route.request().url());
+    const name = url.pathname.split('/').pop();
+    if (!['0-255.pbf', '256-511.pbf', '8192-8447.pbf'].includes(name)) return route.abort();
+    const body = await fs.readFile(new URL(`../.generated/test-glyphs/Noto Sans Regular/${name}`, import.meta.url));
+    return route.fulfill({ contentType: 'application/x-protobuf', headers: { 'access-control-allow-origin': '*' }, body });
+  });
   await page.route(/https:\/\/(tile\.openstreetmap\.org|services\.arcgisonline\.com)\/.+/, route =>
     route.fulfill({ status: 200, contentType: 'image/png', body: png }));
   await page.addInitScript(() => {
@@ -286,9 +293,9 @@ test('basemaps preserve camera and selected route; attribution lives in a collap
   await expect(page.locator('.maplibregl-ctrl-attrib-inner')).toBeHidden();
 });
 
-test('point and cluster palettes and label toggles work with local glyphs', async ({ page }) => {
+test('point and cluster palettes and label toggles work with hosted glyphs', async ({ page }) => {
   const glyphResponses = [];
-  page.on('response', response => { if (response.url().includes('/public/vendor/fonts/')) glyphResponses.push(response.status()); });
+  page.on('response', response => { if (response.url().startsWith('https://demotiles.maplibre.org/font/')) glyphResponses.push(response.status()); });
   await ready(page);
   await mode(page, 'points');
   expect(await page.evaluate(() => window.__markerTestMap.getPaintProperty('member-points', 'circle-color'))).toBe('#006BFF');

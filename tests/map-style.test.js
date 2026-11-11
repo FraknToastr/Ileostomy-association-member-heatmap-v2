@@ -40,9 +40,9 @@ function assertPointPaint(layer) {
   }
 }
 
-test('initial and analytical styles pass MapLibre validation with literal local glyph tokens', () => {
+test('initial and analytical styles use hosted glyphs without repository PBF files', () => {
   const style = initialStyle('https://example.org/heatmap/index.html');
-  assert.equal(style.glyphs, 'https://example.org/heatmap/public/vendor/fonts/{fontstack}/{range}.pbf');
+  assert.equal(style.glyphs, 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf');
   assert.deepEqual(validateStyleMin(style).map(e => e.message), []);
   addAnalysisLayers({ addSource: (id, source) => { style.sources[id] = source; }, addLayer: layer => style.layers.push(layer) });
   assert.deepEqual(validateStyleMin(style).map(e => e.message), []);

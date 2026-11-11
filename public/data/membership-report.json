@@ -1,0 +1,203 @@
+{
+  "totals": {
+    "sourceRows": 3105,
+    "memberRecords": 3105,
+    "joinedMembers": 3019,
+    "unresolvedMembers": 86,
+    "blankRows": 0,
+    "unmatchedMembers": 86,
+    "ambiguousMembers": 0
+  },
+  "unresolved": [
+    {
+      "name": "alice springs",
+      "count": 2,
+      "reason": "unmatched"
+    },
+    {
+      "name": "apsley",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "broken hill",
+      "count": 39,
+      "reason": "unmatched"
+    },
+    {
+      "name": "buronga",
+      "count": 2,
+      "reason": "unmatched"
+    },
+    {
+      "name": "cardross",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "clayton",
+      "count": 2,
+      "reason": "unmatched"
+    },
+    {
+      "name": "coleraine",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "coraki",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "dareton",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "dimboola",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "eli waters",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "empire bay",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "fern bay",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "fremantle",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "gilgai",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "gracemere",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "irymple",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "ivanhoe",
+      "count": 2,
+      "reason": "unmatched"
+    },
+    {
+      "name": "katherine",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "koroit",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "limpinwood",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "menindee",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "merbein",
+      "count": 3,
+      "reason": "unmatched"
+    },
+    {
+      "name": "mildura",
+      "count": 4,
+      "reason": "unmatched"
+    },
+    {
+      "name": "mildura centre plaza",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "mount clarence",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "mudgee",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "murrayville",
+      "count": 2,
+      "reason": "unmatched"
+    },
+    {
+      "name": "newmarket",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "port clinton",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "ramingining",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "red cliffs",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "the university of adelaide",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "thirlmere",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "tongala",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "wendouree",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "winter valley",
+      "count": 1,
+      "reason": "unmatched"
+    },
+    {
+      "name": "wongan hills",
+      "count": 1,
+      "reason": "unmatched"
+    }
+  ]
+}

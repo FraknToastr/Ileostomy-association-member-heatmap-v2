@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
+    "preview": "node scripts/preview-server.mjs",
     "vendor": "node scripts/vendor-assets.mjs",
     "prepare:members": ".venv/bin/python scripts/prepare_members.py",
     "prepare:network": ".venv/bin/python scripts/extract_network.py",
@@ -13,7 +14,9 @@
     "build": "npm run vendor && node scripts/build.mjs",
     "test": "node --test tests/*.test.js",
     "test:python": ".venv/bin/python -m unittest discover -s tests -p 'test_*.py'",
-    "test:e2e": "playwright test"
+    "test:glyphs": "node scripts/fetch-test-glyphs.mjs",
+    "test:e2e": "npm run test:glyphs && playwright test",
+    "test:pages": "npm run test:glyphs && playwright test --config=playwright.pages.config.js"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"

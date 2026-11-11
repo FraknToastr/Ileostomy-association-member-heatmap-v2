@@ -16,15 +16,15 @@ export const PALETTES = Object.freeze({
   orange: { label: 'Bright Orange', point: '#FF6500', light: '#FFBC8F', dark: '#A63D00' },
 });
 export const FONT_STACK = 'Noto Sans Regular';
+export const GLYPH_URL = 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf';
 const DENSITY_COLOR = '#247e80';
 const POINT_RADIUS = ['interpolate', ['linear'], ['get', 'members'], 1, 6, 10, 8, 50, 12, 150, 16];
 const DENSITY_POINT_RADIUS = ['interpolate', ['linear'], ['get', 'members'], 1, 3, 10, 5, 50, 10, 150, 14];
 const none = () => ({ type: 'FeatureCollection', features: [] });
 
-export function initialStyle(baseUrl) {
+export function initialStyle() {
   return { version: 8,
-    // URL() percent-encodes braces, but MapLibre needs literal template tokens.
-    glyphs: new URL('./public/vendor/fonts/', baseUrl).href + '{fontstack}/{range}.pbf',
+    glyphs: GLYPH_URL,
     sources: Object.fromEntries(Object.entries(BASEMAPS).map(([id, source]) => [`basemap-${id}`, { type: 'raster', tileSize: 256,
       tiles: source.tiles, maxzoom: source.maxzoom, attribution: source.attribution }])),
     layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#e5eceb' } },

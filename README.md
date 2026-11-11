@@ -2,11 +2,17 @@
 
 This project prepares anonymous suburb membership totals and driving distances from South Australian suburb points to support groups, then displays the prepared results in a browser. Membership preparation, road extraction and routing run locally. The browser reads the resulting public data; it does not read the membership workbook or calculate routes from the road graph.
 
-## Source-only repository
+## Public GitHub Pages site
 
-Git tracks the application source, Python toolboxes and preparation scripts, tests, configuration, dependency manifests and documentation. Raw workbooks and GeoJSON inputs, OSM PBF files, generated analyses and routes, font PBF files, installed dependencies, virtual environments, build output and test reports remain local and are excluded by `.gitignore`. PBF files are excluded everywhere in the repository.
+Open [the public member heatmap](https://frakntoastr.github.io/Ileostomy-association-member-heatmap-v2/).
 
-A fresh clone needs the local input files and prepared `public/data/` before the app or data-dependent tests can run. Use `npm ci` and `npm run vendor` to restore the MapLibre JavaScript, CSS and licence. Restore the Noto Sans Regular glyph ranges `0-255.pbf`, `256-511.pbf` and `8192-8447.pbf` under `public/vendor/fonts/Noto Sans Regular/` from the [official MapLibre demo glyph source](https://github.com/maplibre/demotiles/tree/gh-pages/font/Noto%20Sans%20Regular), together with the font's OFL licence. Follow the preparation steps below for the local datasets. None of these binary or prepared data files is committed.
+Git tracks the application source, tests, configuration and approved prepared data in `public/data/`: current suburb member counts, distance analysis, reconciliation and snap reports, the manifest, and support-group routes. These aggregate files are public and can be downloaded by visitors. Raw workbooks and source GeoJSON inputs, the OSM PBF and routing graph, installed dependencies, environments, build output and test reports stay local. Every PBF file, including font glyphs, is excluded from Git and the website build.
+
+The browser loads Noto Sans Regular glyphs from the [official MapLibre demo font endpoint](https://demotiles.maplibre.org/font/Noto%20Sans%20Regular/0-255.pbf); labels and basemaps require internet access. Tests download three checksummed glyph ranges into an ignored cache and intercept glyph requests for repeatable checks. No PBFs are committed or deployed.
+
+GitHub Pages uses the `Deploy GitHub Pages` Actions workflow, triggered by a push to `main` or a manual dispatch. It installs locked dependencies on Node 22, checks the data and application, builds and tests the site at its repository URL prefix, and publishes only `dist/`. Pages settings must use **GitHub Actions**, not the repository root. A failed build or test does not replace the last successful deployment. Reverting a problematic commit on `main` redeploys the previous source/data version.
+
+Membership and road processing remain local. When inputs change, regenerate the prepared data, review its reconciliation and reports, then commit the updated public data with the matching application changes. The deployment never needs the workbook, raw road PBF or a live routing service.
 
 ## Interactive map controls
 
@@ -16,10 +22,10 @@ A fresh clone needs the local input files and prepared `public/data/` before the
 - Choose **OpenStreetMap**, **Esri World Topography**, or **Esri Aerial**. Switching preserves the camera, selected suburb, route, and analysis. If tiles fail, choose another basemap in Map; local data and overlays remain available.
 - Display **Member density**, **Individual points**, **Clusters**, or **Distance bands**. Points and clusters offer **Electric Blue**, **Magenta**, **Vivid Violet**, and **Bright Orange**. Individual points are opaque with white halos; separate orange or gray rings show beyond-threshold or missing-route status. Density and distance bands retain their semantic colors.
 - Cluster sizes and count labels use **summed members**. Clicking a cluster zooms in. Clicking a suburb or choosing a search result shows its details in Selected Suburb and fits its complete shortest road route. **Fit Route**, beside **Fit Members**, refits the loaded route after panning or zooming. It is disabled until a route is available. In Member density, Individual points, and Distance bands, closing Selected Suburb restores the map view from before the first route selection. There are no map popups.
-- Toggle **Suburb labels** (initially off), **Cluster member counts** (initially on), and **Support Group labels** (initially on) independently. Turning off group labels leaves group dots visible. Font glyphs and their OFL licence are served locally from `public/vendor/fonts/`.
+- Toggle **Suburb labels** (initially off), **Cluster member counts** (initially on), and **Support Group labels** (initially on) independently. Turning off group labels leaves group dots visible. Font glyphs are loaded from MapLibre’s hosted Noto Sans Regular endpoint.
 - All attribution appears in the **MapLibre info icon, collapsed by default**. Credits follow the active basemap and retain OSM road-data and MapLibre attribution.
 
-Basemap service metadata: [Esri World Topography](https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer) and [Esri World Imagery](https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer). These are third-party online tile services; prepared member and route data remain local static assets.
+Basemap service metadata: [Esri World Topography](https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer) and [Esri World Imagery](https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer). These are third-party online tile services; prepared member and route data are published as static assets.
 
 ## Current source reconciliation
 
@@ -72,17 +78,30 @@ Use the project's development server, which allows only application assets, `src
 
 ## Setup
 
-The current environment uses Node.js 22.23.2 and Python 3.13. Run the commands below in a Linux or WSL Bash terminal from the project root. Commands use the RTK wrapper required for this workspace.
+A fresh clone already contains the prepared data needed by the browser. Use Node 22 in a Linux or WSL Bash terminal from the project root. Commands use the RTK wrapper required for this workspace.
 
 ```bash
 rtk npm ci
+rtk npm run build
+rtk npm run dev
+```
+
+The development app is available at `http://127.0.0.1:4173`. To preview exactly the built GitHub Pages bundle, stop the development server if desired and run:
+
+```bash
+rtk npm run preview
+```
+
+Open `http://127.0.0.1:4174/Ileostomy-association-member-heatmap-v2/`. This server exposes only the built site at its project prefix.
+
+Python is needed only to regenerate data from the original local inputs. The current preparation environment uses Python 3.13:
+
+```bash
 rtk proxy python3 -m venv .venv
 rtk proxy .venv/bin/python -m pip install -r requirements.txt
 ```
 
-`requirements.txt` pins `osmium==4.3.2`, `pyproj==3.8.0` and `scipy==1.18.1` for road extraction, projection and spatial indexing. The membership preparation script and its tests use only Python's standard library, so they also run with system `python3` without installing these packages or `openpyxl`.
-
-Keep the original local source files in the locations listed above, or pass the CLI path arguments. No upload or membership geocoding service is required.
+`requirements.txt` pins the road extraction, projection and spatial-indexing dependencies. Membership preparation uses only Python's standard library. Keep original inputs local in the locations below or pass the CLI path arguments.
 
 ## Prepare and run
 
@@ -129,7 +148,7 @@ Build the publishable application after preparing the real routing data:
 rtk npm run build
 ```
 
-The build prepares browser vendor assets and copies the website into `dist/`. Its routing-data check requires prepared analysis. Upload the contents of `dist/` to a static web host, keeping the application and data paths together. Never upload the repository root as the website.
+The build vendors MapLibre JavaScript, CSS and licence, clears stale output, and copies only the application and explicitly allowed prepared data into `dist/`. PBFs, workbooks, raw graphs and development files are never copied. Always publish only `dist/`, keeping relative application and data paths together.
 
 ## Membership preparation and alias review
 
@@ -236,15 +255,16 @@ rtk proxy .venv/bin/python -B -m unittest discover -s tests -p test_members.py
 
 All **18 membership tests** pass in both environments. They exercise real ZIP/XML fixtures, repeated rows, Unicode, explicit aliases, ambiguous candidates, sparse blanks, formulas, stable IDs, source preservation, deterministic output and the actual 3,105-record reconciliation.
 
-Run the broader project checks after data preparation:
+Run the JavaScript and browser checks using the committed prepared data:
 
 ```bash
-rtk npm run test:python
 rtk npm test
+rtk npm run build
 rtk npm run test:e2e
+rtk npm run test:pages
 ```
 
-The current full Python check reports **50 passing tests**, including **14 routing tests**. Browser tests use Playwright and Chromium; Chromium is installed in the current environment's browser cache. On a new machine, install the browser runtime before running browser checks:
+Python preparation tests run locally with `rtk npm run test:python` and the original input files. Browser checks use Playwright and Chromium. On a new machine, install the browser runtime before running them:
 
 ```bash
 rtk npx playwright install chromium

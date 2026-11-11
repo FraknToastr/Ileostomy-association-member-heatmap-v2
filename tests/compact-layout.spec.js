@@ -57,7 +57,8 @@ async function expectSelectionPlacement(page, mobile) {
   if (mobile) {
     await expect(page.locator('#analysis-panel #selected-suburb-slot #selected-suburb')).toBeVisible();
   } else {
-    expect(await card.evaluate(el => el.closest('.map-stage') !== null), 'Desktop selection stays on the map').toBe(true);
+    await expect.poll(() => card.evaluate(el => el.closest('.map-stage') !== null),
+      { message: 'Desktop selection returns to the map after responsive layout updates' }).toBe(true);
     expect(await card.evaluate(el => {
       const rect = el.getBoundingClientRect();
       const map = document.getElementById('map').getBoundingClientRect();

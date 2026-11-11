@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const appFiles = ['index.html', 'app.js', 'styles.css'];
-const requiredSources = ['analysis.js', 'map-analysis.js', 'map-style.js'];
+const requiredSources = ['analysis.js', 'map-analysis.js', 'map-style.js', 'exports.js'];
 const dataFiles = ['analysis.json', 'manifest.json', 'members.geojson', 'membership-report.json', 'snap-report.json'];
 const vendorFiles = ['maplibre-gl.js', 'maplibre-gl.css', 'maplibre-LICENSE.txt'];
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);

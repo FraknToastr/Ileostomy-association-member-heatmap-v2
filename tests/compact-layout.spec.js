@@ -96,7 +96,7 @@ for (const viewport of viewports) {
     await expect(page.locator('#data-notice')).toBeHidden();
     await expectViewportContained(page);
 
-    for (const id of ['map-controls-toggle', 'display-filters-toggle', 'theme-toggle']) {
+    for (const id of ['map-controls-toggle', 'display-filters-toggle', 'theme-toggle', 'export-toggle']) {
       const button = page.locator(`header #${id}`);
       await expect(button).toBeInViewport({ ratio: 1 });
       expect(await button.evaluate(el => {

@@ -18,10 +18,11 @@
       <div class="brand-copy"><p class="eyebrow">Ileostomy Association · South Australia</p><h1>Ileostomy Association Member Heatmap</h1></div>
       <div class="header-actions">
         <span id="source-date" class="source-date">Awaiting source data</span>
-        <nav class="header-menus" aria-label="Map options">
+        <nav class="header-menus" aria-label="Main menu">
           <button id="map-controls-toggle" class="button button-header" type="button" popovertarget="map-controls-panel" aria-controls="map-controls-panel" aria-expanded="false">Map</button>
           <button id="display-filters-toggle" class="button button-header" type="button" popovertarget="display-filters-panel" aria-controls="display-filters-panel" aria-expanded="false">Display Filters</button>
           <button id="theme-toggle" class="button button-header" type="button" aria-pressed="false">Dark theme</button>
+          <button id="export-toggle" class="button button-header" type="button" popovertarget="export-panel" aria-controls="export-panel" aria-expanded="false">Export CSV</button>
         </nav>
       </div>
     </header>
@@ -54,7 +55,7 @@
             <summary>Map key</summary>
             <div id="density-legend" hidden><h3>Member density</h3><div class="density-ramp"></div><div class="legend-extents"><span>Lower</span><span>Higher</span></div></div>
             <div id="band-legend" hidden></div>
-            <div id="symbol-legend"><h3 id="symbol-legend-title">Members per suburb</h3><div class="legend-row"><span id="symbol-legend-swatch" class="point-swatch"></span><span id="symbol-legend-color">Electric Blue</span></div><p id="cluster-legend-note" class="hint" hidden>Member totals</p></div>
+            <div id="symbol-legend"><h3 id="symbol-legend-title">Members per suburb</h3><div class="legend-row"><span id="symbol-legend-swatch" class="point-swatch"></span><span id="symbol-legend-color">Suburb/Locality</span></div><p id="cluster-legend-note" class="hint" hidden>Member totals</p></div>
             <div id="threshold-legend"><div class="legend-row"><span class="threshold-swatch beyond"></span><span id="beyond-legend-label">Beyond 50 km</span></div><div class="legend-row"><span class="threshold-swatch no-route"></span><span>No computed route</span></div></div>
             <div class="legend-row"><span class="group-key"></span><span>Support group</span></div>
             <div class="legend-row"><span class="route-key"></span><span>Selected road route</span></div>
@@ -81,7 +82,7 @@
           <dl class="threshold-totals" aria-live="polite" aria-atomic="true"><div><dt id="threshold-within-label">Within 50 km</dt><dd id="threshold-within">—</dd></div><div><dt id="threshold-beyond-label">Beyond 50 km</dt><dd id="threshold-beyond">—</dd></div><div><dt>No route</dt><dd id="threshold-no-route">—</dd></div></dl>
         </section>
         <section class="panel-section band-section" aria-labelledby="bands-heading">
-          <div class="section-heading"><h3 id="bands-heading">Members by distance</h3><button id="export-csv" class="button button-small" type="button" disabled>Export CSV</button></div>
+          <div class="section-heading"><h3 id="bands-heading">Members by distance</h3></div>
           <p id="table-context" class="hint">All joined-member distances</p>
           <div class="table-wrap"><table class="band-table"><caption class="sr-only" id="band-caption">Absolute and percentage member counts by road-distance band.</caption><thead><tr><th scope="col">Distance</th><th scope="col">Members</th><th scope="col">Suburbs</th><th scope="col">Share</th></tr></thead><tbody id="band-rows"><tr><td colspan="4" class="table-empty">Waiting for analysis…</td></tr></tbody><tfoot><tr><th scope="row">Joined total</th><td id="table-member-total">—</td><td id="table-suburb-total">—</td><td id="table-share-total">—</td></tr></tfoot></table></div>
           <p class="table-footnote" id="denominator-note">Shares use all joined members.</p><p class="unresolved-note" id="unresolved-note">Unresolved records remain outside the distance bands.</p>
@@ -108,6 +109,16 @@
       <div class="section-heading filter-summary"><p id="active-band" class="hint">All distance bands</p><button id="clear-filters" class="button button-small" type="button" disabled>Clear filters</button></div>
       <form id="range-form" novalidate><fieldset id="range-controls" disabled><legend class="sr-only">Visible road-distance range</legend><div class="range-fields"><div><label class="field-label" for="distance-min">Minimum km (inclusive)</label><input id="distance-min" type="number" min="0" step="any" placeholder="0" aria-describedby="range-error range-help"></div><div><label class="field-label" for="distance-max">Maximum km (exclusive)</label><input id="distance-max" type="number" min="0" step="any" placeholder="No maximum" aria-describedby="range-error range-help"></div></div><p id="range-error" class="field-error" role="status" aria-live="polite" hidden></p><button class="button button-secondary range-apply" type="submit">Apply range</button></fieldset></form>
       <div class="visible-summary" aria-live="polite" aria-atomic="true"><span class="metric-label">Visible members</span><strong id="visible-members">—</strong><span id="visible-suburbs">Waiting for data</span></div><p id="range-help" class="hint">Filters change the map and visible summary. The full band table stays unchanged. Distance limits exclude routes without a computed distance.</p>
+    </div>
+    <div id="export-panel" class="header-menu" popover="auto" role="dialog" aria-labelledby="export-heading">
+      <div class="section-heading menu-heading"><h2 id="export-heading" tabindex="-1">Export CSV</h2><button id="export-close" class="icon-button" type="button" aria-label="Close Export CSV menu">×</button></div>
+      <p id="export-context" class="hint">Nearest reachable support group</p>
+      <div class="export-reports">
+        <button id="export-csv" class="button button-secondary" type="button" disabled>Distance-band summary</button>
+        <button id="export-within" class="button button-secondary" type="button" disabled>Suburbs within 50 km</button>
+        <button id="export-beyond" class="button button-secondary" type="button" disabled>Suburbs beyond 50 km</button>
+      </div>
+      <p class="hint export-note">Within includes the boundary; no-route suburbs are excluded from the suburb reports. Display filters do not affect exports.</p>
     </div>
     <noscript><p class="noscript-notice">JavaScript is required to read the local analysis and display the map.</p></noscript>
   </body>

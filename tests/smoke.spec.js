@@ -84,6 +84,7 @@ test('group selection, editable boundaries, filtering and search operate on the 
 
 test('CSV export includes every joined member and source files cannot be served', async ({ page, request }) => {
   await ready(page);
+  await page.locator('#export-toggle').click();
   const downloading = page.waitForEvent('download');
   await page.locator('#export-csv').click();
   const download = await downloading;

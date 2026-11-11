@@ -1,6 +1,7 @@
 import { aggregateBandCounts, filterAssignments, normalizeDistanceSettings, buildBandCsv, csvCell } from './src/analysis.js';
 import { thresholdStatus, summarizeThreshold, prepareMapFeatures } from './src/map-analysis.js';
 import { BASEMAPS, PALETTES, ROAD_ATTRIBUTION, initialStyle, addAnalysisLayers, applyAppearance } from './src/map-style.js';
+import { buildSuburbCsv } from './src/exports.js';
 
 const $ = id => document.getElementById(id);
 const number = value => Number(value || 0).toLocaleString('en-AU');
@@ -40,7 +41,7 @@ function groupName(id) { return state.analysis.groups.find(g => g.id === id)?.na
 function contextName() { return state.mode === 'nearest' ? 'Nearest reachable support group' : groupName(state.groupId); }
 function bucketColour(bucket, i = 0) { return bucket.id.startsWith('band-') ? colours[i % colours.length] : '#87949b'; }
 function controlsEnabled(enabled) {
-  for (const id of ['analysis-controls', 'range-controls', 'map-display', 'map-settings', 'distance-control', 'suburb-search', 'export-csv', 'clear-filters', 'fit-members']) $(id).disabled = !enabled;
+  for (const id of ['analysis-controls', 'range-controls', 'map-display', 'map-settings', 'distance-control', 'suburb-search', 'export-csv', 'export-within', 'export-beyond', 'clear-filters', 'fit-members']) $(id).disabled = !enabled;
   $('clear-search').disabled = !enabled || !$('suburb-search').value;
   $('fit-route').disabled = !enabled || !state.activeRoute || !state.mapReady;
 }
@@ -154,6 +155,9 @@ function renderThreshold() {
   if (!state.summary) return;
   const result = summarizeThreshold(state.summary.assignments, state.thresholdKm);
   text('support-distance-value', `${state.thresholdKm} km`);
+  text('export-within', `Suburbs within ${state.thresholdKm} km`);
+  text('export-beyond', `Suburbs beyond ${state.thresholdKm} km`);
+  text('export-context', contextName());
   $('support-distance').setAttribute('aria-valuetext', `${state.thresholdKm} kilometres by road`);
   text('threshold-heading', `Access at ${state.thresholdKm} km`);
   text('threshold-within-label', `Within ${state.thresholdKm} km`);
@@ -187,7 +191,7 @@ function updateMap() {
   $('symbol-palette').disabled = !['points', 'clusters'].includes(state.mapMode);
   text('symbol-legend-title', state.mapMode === 'clusters' ? 'Members per cluster' : 'Members per suburb');
   $('symbol-legend-swatch').style.backgroundColor = PALETTES[state.palette].point;
-  text('symbol-legend-color', PALETTES[state.palette].label);
+  text('symbol-legend-color', 'Suburb/Locality');
   if (!state.mapReady) return;
   const collection = prepareMapFeatures(visible, { thresholdKm: state.thresholdKm, bandColors: colours });
   const signature = JSON.stringify(collection);
@@ -472,12 +476,25 @@ function exportCsv() {
   csv += '\r\n' + [['Source reconciliation', 'Members'], ['Source records', state.report.totals.memberRecords],
     ['Joined members', state.report.totals.joinedMembers], ['Unresolved members (excluded from bands)', state.report.totals.unresolvedMembers]]
     .map(row => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
+  downloadCsv(csv, `member-distance-bands-${state.mode === 'nearest' ? 'nearest' : state.groupId}.csv`,
+    'Distance-band summary exported. Map filters do not alter the exported band totals.');
+}
+function exportSuburbs(category) {
+  const csv = buildSuburbCsv(state.summary.assignments, {
+    thresholdKm: state.thresholdKm, category, mode: state.mode, groups: state.analysis.groups,
+  });
+  downloadCsv(csv, `member-suburbs-${category}-${state.thresholdKm}km-${state.mode === 'nearest' ? 'nearest' : state.groupId}.csv`,
+    `Suburbs ${category === 'within' ? 'within' : 'beyond'} ${state.thresholdKm} km exported for ${contextName()}.`);
+}
+function downloadCsv(csv, filename, message) {
   const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
   const link = element('a');
-  link.href = url; link.download = `member-distance-bands-${state.mode === 'nearest' ? 'nearest' : state.groupId}.csv`;
+  link.href = url; link.download = filename;
   document.body.append(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  text('action-status', 'Distance-band summary exported. Map filters do not alter the exported band totals.');
+  text('action-status', message);
+  $('export-panel').hidePopover();
+  $('export-toggle').focus({ preventScroll: true });
 }
 function setMapTheme() {
   if (state.mapReady) for (const id of Object.keys(BASEMAPS)) {
@@ -541,7 +558,7 @@ for (const [id, key] of [
 function positionHeaderMenu(panel, button) {
   const anchor = button.getBoundingClientRect();
   const width = Math.min(370, window.innerWidth - 24);
-  const top = anchor.bottom + 8;
+  const top = Math.max(anchor.bottom, button.closest('.header-menus')?.getBoundingClientRect().bottom ?? anchor.bottom) + 8;
   panel.style.width = `${width}px`;
   panel.style.left = `${Math.max(12, Math.min(anchor.right - width, window.innerWidth - width - 12))}px`;
   panel.style.top = `${top}px`;
@@ -550,6 +567,7 @@ function positionHeaderMenu(panel, button) {
 const headerMenus = [
   ['map-controls-panel', 'map-controls-toggle', 'map-controls-close', 'map-controls-heading'],
   ['display-filters-panel', 'display-filters-toggle', 'display-filters-close', 'display-heading'],
+  ['export-panel', 'export-toggle', 'export-close', 'export-heading'],
 ];
 for (const [panelId, buttonId, closeId, headingId] of headerMenus) {
   const panel = $(panelId), button = $(buttonId);
@@ -605,6 +623,8 @@ $('clear-filters').addEventListener('click', () => {
   $('distance-min').value = ''; $('distance-max').value = ''; $('range-error').hidden = true; renderAnalysis();
 });
 $('export-csv').addEventListener('click', exportCsv);
+$('export-within').addEventListener('click', () => exportSuburbs('within'));
+$('export-beyond').addEventListener('click', () => exportSuburbs('beyond'));
 $('theme-toggle').addEventListener('click', () => setTheme(document.documentElement.dataset.theme !== 'dark'));
 let dark = false;
 try { dark = localStorage.getItem('support-heatmap-theme') === 'dark'; } catch { /* Optional preference storage. */ }

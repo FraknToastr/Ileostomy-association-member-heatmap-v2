@@ -10,7 +10,7 @@ import { buildSite } from '../scripts/build.mjs';
 const groups = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12].map(id => ({ id: `group-${id}` }));
 const dataFiles = ['analysis.json', 'manifest.json', 'members.geojson', 'membership-report.json', 'snap-report.json',
   ...groups.map(group => `routes/${group.id}.geojson`)];
-const assets = ['index.html', 'app.js', 'styles.css', 'src/analysis.js', 'src/map-analysis.js', 'src/map-style.js',
+const assets = ['index.html', 'app.js', 'styles.css', 'src/analysis.js', 'src/map-analysis.js', 'src/map-style.js', 'src/exports.js',
   'public/vendor/maplibre-gl.js', 'public/vendor/maplibre-gl.css', 'public/vendor/maplibre-LICENSE.txt'];
 const expected = [...assets, ...dataFiles.map(file => `public/data/${file}`)].sort();
 const collection = features => ({ type: 'FeatureCollection', features });
